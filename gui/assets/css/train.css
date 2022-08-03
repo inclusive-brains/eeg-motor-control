@@ -1,0 +1,44 @@
+:root {
+    --message-color: #000000;
+    --message-size: 32px;
+    --marker-size: 60px;
+    --marker-color: #000000;
+    --marker-thickness: 6px;
+}
+
+
+.marker {
+  width: var(--marker-size);
+  height: var(--marker-size);
+  background:
+    linear-gradient(var(--marker-color), var(--marker-color)),
+    linear-gradient(var(--marker-color), var(--marker-color));
+  background-position: center;
+  background-size: 100% var(--marker-thickness), var(--marker-thickness) 100%;
+  background-repeat: no-repeat;
+}
+
+.center {
+    position: fixed;
+    left: 50%;
+    top: 50%;
+    transform: translate(-50%, -50%);
+}
+
+.no_cursor {
+    cursor: none;
+}
+
+#start {
+    background-color: #555;
+    border: none;
+    color: white;
+    font-size: 16px;
+    height: 50px;
+    width: 200px;
+}
+
+#message {
+    color: var(--message-color);
+    font-size: var(--message-size);
+}

@@ -1,0 +1,29 @@
+graphs:
+
+  - id: record
+    nodes:
+    - id: subscribe
+      module: timeflux.nodes.zmq
+      class: Sub
+      params:
+        topics: [ raw, motion, eeg_quality, contact_quality, filtered, events ]
+    - id: save
+      module: timeflux.nodes.hdf5
+      class: Save
+      params:
+        min_itemsize: 512
+        path: ./data/
+    edges:
+      - source: subscribe:raw
+        target: save:raw
+      - source: subscribe:motion
+        target: save:motion
+      - source: subscribe:eeg_quality
+        target: save:quality_eeg
+      - source: subscribe:contact_quality
+        target: save:quality_contact
+      - source: subscribe:filtered
+        target: save:filtered
+      - source: subscribe:events
+        target: save:events
+    rate: 1
