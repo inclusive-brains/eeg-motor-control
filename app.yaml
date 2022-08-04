@@ -106,7 +106,7 @@ graphs:
       module: nodes.predict
       class: Accumulate
       params:
-        buffer: 10
+        buffer_size: 10
         threshold: 2
     - id: pub
       module: timeflux.nodes.zmq
