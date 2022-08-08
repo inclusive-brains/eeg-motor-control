@@ -6,9 +6,35 @@ In this first version, a single machine-learning model, based on Riemannian geom
 
 See the video for a full walkthrough of the interface.
 
+## Installation
+
+First, install Timeflux in a clean environment:
+
+```
+$ conda create --name timeflux python=3.10
+$ conda activate timeflux
+```
+
+Then, install the app from the Git repository:
+
+```
+$ git clone https://github.com/inclusive-brains/control.git
+$ cd control
+$ pip install -r requirements.txt
+```
+
+## Updating
+
+Get the latest code from the repository:
+
+```
+$ cd control
+$ git pull
+```
+
 ## Running
 
-Install Timeflux and the requirements found in `requirements.txt`, and run:
+Do not forget to activate your environment before executing the following:
 
 ```
 $ timeflux -d app.yaml
