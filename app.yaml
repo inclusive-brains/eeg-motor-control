@@ -1,7 +1,8 @@
 import:
-  - graphs/random.yaml
+  #- graphs/random.yaml
+  - graphs/openbci.yaml
   #- graphs/emotiv.yaml
-  #- graphs/record.yaml
+  - graphs/record.yaml
 
 graphs:
 
@@ -24,11 +25,11 @@ graphs:
             # see README.md for available options
             training:
               blocks_per_session: 3
-              instructions_per_block: 12
+              instructions_per_block: 15
               duration: # all durations are milliseconds
                 prep: 3000
                 rest: 5000
-                on: 3000
+                on: 1500
                 off: 2000
               instructions:
                 - Clench your LEFT fist
@@ -69,19 +70,19 @@ graphs:
       params:
         event_trigger: instruction_begins
         before: 0
-        after: 0.9
-    - id: window
-      module: timeflux.nodes.window
-      class: Slide
-      params:
-        length: 0.8
-        step: 0.1
-        rate: 250
+        after: 1.8
     - id: trim
       module: timeflux.nodes.epoch
       class: Trim
       params:
-        samples: 200
+        samples: 350
+    - id: window
+      module: timeflux.nodes.window
+      class: Slide
+      params:
+        length: 1.4
+        step: 0.2
+        rate: 250
     - id: classification
       module: timeflux.nodes.ml
       class: Pipeline
@@ -113,9 +114,9 @@ graphs:
       class: Pub
       params:
         topic: model
-    # - id: display
-    #   module: timeflux.nodes.debug
-    #   class: Display
+    - id: display
+      module: timeflux.nodes.debug
+      class: Display
     edges:
       - source: sub:filtered
         target: epoch
@@ -135,8 +136,8 @@ graphs:
         target: predict:model
       - source: predict
         target: pub
-    # - source: classification:events
-    #   target: display
+      # - source: predict
+      #   target: display
     rate: 10
 
   - id: Display
