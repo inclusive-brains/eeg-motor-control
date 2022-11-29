@@ -18,12 +18,15 @@ class Accumulate(Node):
     Args:
         threshold (float): ratio between the two best candidates to reach confidence (default: 2).
         buffer_size (int): number of predictions to accumulate for each class (default: 10).
+        recovery (int): number of predictions to ignore after a final decision, to avoid classifying twice the same event (default: 5).
     """
 
-    def __init__(self, threshold=2, buffer_size=10):
+    def __init__(self, threshold=2, buffer_size=10, recovery=5):
         self._threshold = threshold
         self._buffer_size = buffer_size
+        self._recovery = recovery
         self._buffer = []
+        self._ignore = 0
 
     def update(self):
 
@@ -36,6 +39,10 @@ class Accumulate(Node):
                     return
                 # Check probabilities
                 elif row.label == "predict_proba":
+                    # Check the recovery counter
+                    if self._ignore > 0:
+                        self._ignore -= 1
+                        continue
                     # Append to buffer
                     proba = json.loads(row["data"])["result"]
                     self._buffer.append(proba)
@@ -51,3 +58,4 @@ class Accumulate(Node):
                         self.o.data = make_event("predict", {"target": int(indices[0])}, False)
                         self.logger.debug(f"Predicted: {indices[0]}")
                         self._buffer = []
+                        self._ignore = self._recovery
