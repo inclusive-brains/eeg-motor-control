@@ -6,24 +6,31 @@ graphs:
       module: timeflux.nodes.zmq
       class: Sub
       params:
-        topics: [ raw, motion, eeg_quality, contact_quality, filtered, events ]
+        #topics: [ raw, motion, eeg_quality, contact_quality, filtered, events ]
+        topics: [ raw, offsets, filtered, events, bitalino_signal, bitalino_offsets ]
     - id: save
       module: timeflux.nodes.hdf5
       class: Save
       params:
-        min_itemsize: 512
-        path: ./data/
+        min_itemsize: 1024
+        path: {{ TIMEFLUX_DATA_PATH }}
     edges:
       - source: subscribe:raw
-        target: save:raw
-      - source: subscribe:motion
-        target: save:motion
-      - source: subscribe:eeg_quality
-        target: save:quality_eeg
-      - source: subscribe:contact_quality
-        target: save:quality_contact
+        target: save:eeg_raw
+      - source: subscribe:offsets
+        target: save:eeg_offsets
+      # - source: subscribe:motion
+      #   target: save:motion
+      # - source: subscribe:eeg_quality
+      #   target: save:quality_eeg
+      # - source: subscribe:contact_quality
+      #   target: save:quality_contact
       - source: subscribe:filtered
-        target: save:filtered
+        target: save:eeg_filtered
       - source: subscribe:events
         target: save:events
+      - source: subscribe:bitalino_signal
+        target: save:bitalino_signal
+      - source: subscribe:bitalino_offsets
+        target: save:bitalino_offsets
     rate: 1

@@ -19,12 +19,14 @@ class Accumulate(Node):
         threshold (float): ratio between the two best candidates to reach confidence (default: 2).
         buffer_size (int): number of predictions to accumulate for each class (default: 10).
         recovery (int): number of predictions to ignore after a final decision, to avoid classifying twice the same event (default: 5).
+        source (string): an optional unique identifier used to differentiate predictions from multiple models.
     """
 
-    def __init__(self, threshold=2, buffer_size=10, recovery=5):
+    def __init__(self, threshold=2, buffer_size=10, recovery=5, source=""):
         self._threshold = threshold
         self._buffer_size = buffer_size
         self._recovery = recovery
+        self._source = source
         self._buffer = []
         self._ignore = 0
 
@@ -55,7 +57,8 @@ class Accumulate(Node):
                         return
                     if (indices[1] * self._threshold) < indices[0]:
                         # Make a final decision and reset the buffer
-                        self.o.data = make_event("predict", {"target": int(indices[0])}, False)
-                        self.logger.debug(f"Predicted: {indices[0]}")
+                        meta = {"target": int(indices[0]), "source": self._source}
+                        self.o.data = make_event("predict", meta, False)
+                        self.logger.debug(meta)
                         self._buffer = []
                         self._ignore = self._recovery

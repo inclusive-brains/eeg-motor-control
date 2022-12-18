@@ -1,8 +1,11 @@
 import:
-  #- graphs/random.yaml
-  - graphs/openbci.yaml
-  #- graphs/emotiv.yaml
+  - graphs/eeg_{{ DEVICE }}.yaml
+  {% if BITALINO %}
+  - graphs/ecg_bitalino.yaml
+  {% endif %}
+  - graphs/classification.yaml
   - graphs/record.yaml
+  - graphs/debug.yaml
 
 graphs:
 
@@ -22,19 +25,53 @@ graphs:
           app: gui
         settings:
           app:
-            # see README.md for available options
             training:
-              blocks_per_session: 3
-              instructions_per_block: 15
-              duration: # all durations are milliseconds
-                prep: 3000
-                rest: 5000
-                on: 1500
-                off: 2000
-              instructions:
-                - Clench your LEFT fist
-                - Clench your RIGHT fist
-                - BLINK once
+              baseline:
+                enable: {{ BASELINE_ENABLE }}
+                duration: {{ BASELINE_DURATION }}
+              motor:
+                enable: {{ MOTOR_ENABLE }}
+                blocks: {{ MOTOR_BLOCKS }}
+                trials: {{ MOTOR_TRIALS }}
+                imagery:
+                  - LEFT
+                  - RIGHT
+                {% if MOTOR_IMAGERY == "rotation" %}
+                media:
+                  - path: assets/media/rotation_left.mp4
+                    width: 320
+                    position: bottom-left
+                  - path: assets/media/rotation_right.mp4
+                    width: 320
+                    position: bottom-right
+                {% elif MOTOR_IMAGERY == "extension" %}
+                media:
+                  - path: assets/media/extension_left.mp4
+                    width: 320
+                    position: bottom-left
+                  - path: assets/media/extension_right.mp4
+                    width: 320
+                    position: bottom-right
+                {% elif MOTOR_IMAGERY == "flexion" %}
+                media:
+                  - path: assets/media/flexion_left.mp4
+                    width: 320
+                    position: bottom-left
+                  - path: assets/media/flexion_right.mp4
+                    width: 320
+                    position: bottom-right
+                {% elif MOTOR_IMAGERY == "generic" %}
+                media:
+                  - path: assets/media/arrow_left.png
+                    width: 320
+                    position: left
+                  - path: assets/media/arrow_right.png
+                    width: 320
+                    position: right
+                {% endif %}
+              blink:
+                enable: {{ BLINK_ENABLE }}
+                trials: {{ BLINK_TRIALS }}
             grid:
               shape:
                 ratio: "1:1"
@@ -57,101 +94,4 @@ graphs:
         target: pub
     rate: 10
 
-  - id: Classification
-    nodes:
-    - id: sub
-      module: timeflux.nodes.zmq
-      class: Sub
-      params:
-        topics: [ filtered, events ]
-    - id: epoch
-      module: timeflux.nodes.epoch
-      class: Epoch
-      params:
-        event_trigger: instruction_begins
-        before: 0
-        after: 1.8
-    - id: trim
-      module: timeflux.nodes.epoch
-      class: Trim
-      params:
-        samples: 350
-    - id: window
-      module: timeflux.nodes.window
-      class: Slide
-      params:
-        length: 1.4
-        step: 0.2
-        rate: 250
-    - id: classification
-      module: timeflux.nodes.ml
-      class: Pipeline
-      params:
-        mode: predict_proba
-        meta_label: [ epoch, context, id ]
-        event_start_accumulation: training_begins
-        event_stop_accumulation: training_ends
-        event_start_training: training_ends
-        steps:
-          - module: timeflux.estimators.transformers.shape
-            class: Transpose
-            args:
-              axes: [ 0, 2, 1 ]
-          - module: pyriemann.estimation
-            class: ERPCovariances
-            args:
-              estimator: oas
-          - module: pyriemann.classification
-            class: MDM
-    - id: predict
-      module: nodes.predict
-      class: Accumulate
-      params:
-        buffer_size: 10
-        threshold: 2
-    - id: pub
-      module: timeflux.nodes.zmq
-      class: Pub
-      params:
-        topic: model
-    - id: display
-      module: timeflux.nodes.debug
-      class: Display
-    edges:
-      - source: sub:filtered
-        target: epoch
-      - source: sub:filtered
-        target: window
-      - source: sub:events
-        target: epoch:events
-      - source: sub:events
-        target: classification:events
-      - source: epoch:*
-        target: trim
-      - source: trim:*
-        target: classification:training
-      - source: window:*
-        target: classification
-      - source: classification:events
-        target: predict:model
-      - source: predict
-        target: pub
-      # - source: predict
-      #   target: display
-    rate: 10
-
-  - id: Display
-    nodes:
-    - id: subscribe
-      module: timeflux.nodes.zmq
-      class: Sub
-      params:
-        topics: [ filtered, events ]
-    - id: debug
-      module: timeflux.nodes.debug
-      class: Display
-    edges:
-      - source: subscribe:events
-        target: debug
-    rate: 10
 

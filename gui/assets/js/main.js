@@ -2,24 +2,33 @@
 
 const app = location.pathname.split('/')[1];
 const button = document.getElementById('start');
+const logo = document.getElementById('logo');
 const message = document.getElementById('message');
+const ready = document.getElementById('ready');
+const loading = document.getElementById('loading');
 const main = document.getElementById('wrapper');
 
 let training = null;
 let grid = null;
 
+let model = {
+    _enabled: 0,
+    _trained: 0,
+}
+
 let blink = {
-    min_delay: 50,
-    max_delay: 500,
-    last_event: 0,
-    status: 0,
-    timeout: null
+    delay: 500,
+    _last_event: 0,
+    _status: 0,
+    _timeout: null
 };
 
 (async () => {
 
     let settings = await load_settings();
     settings = settings[app];
+    model._enabled += (settings.training?.motor?.enable ?? true);
+    model._enabled += (settings.training?.blink?.enable ?? true);
 
     let io = new IO();
     io.on('connect', () => io.event('session_begins', settings));
@@ -27,16 +36,8 @@ let blink = {
     io.subscribe('model');
     io.on('model', on_message);
 
-    button.addEventListener('click', async () => {
-        button.classList.toggle('hidden');
-        training = new Training(io, settings.training);
-        io.event('training_begins', training.options);
-        await training.start();
-        io.event('training_ends');
-        message.innerHTML = '<em>Please wait</em>';
-    });
-
     window.addEventListener('keydown', (event) => {
+        if (grid == null) return;
         if (['0', '1', '2'].includes(event.key)) {
             on_prediction(parseInt(event.key));
         }
@@ -52,56 +53,59 @@ let blink = {
     })
 
     function on_message(data, meta) {
-        for (let row of Object.values(data)) {
+        for (const [timestamp, row] of Object.entries(data)) {
             switch (row.label) {
                 case 'ready':
-                    message.innerHTML = '';
-                    main.classList.toggle('hidden');
-                    grid = new Grid(io, settings.grid);
-                    io.event('grid_begins', grid.options);
+                    model._trained += 1;
+                    if (model._trained == model._enabled) {
+                        loading.classList.toggle('hidden');
+                        main.classList.toggle('hidden');
+                        grid = new Grid(io, settings.grid);
+                    }
                     break;
                 case 'predict':
-                    on_prediction(row.data.target);
+                    if (grid != null) {
+                        on_prediction(timestamp, row.data.source, row.data.target);
+                    }
                     break;
             }
         }
     }
 
-    function on_prediction(prediction) {
-        switch(prediction) {
-            case 0:
-                if (blink.timeout) clearTimeout(blink.timeout);
-                blink.status = 0;
-                grid._update('left');
-                break;
-            case 1:
-                if (blink.timeout) clearTimeout(blink.timeout);
-                blink.status = 0;
-                grid._update('right');
-                break;
-            case 2:
-                let now = performance.now();
-                if (now < (blink.last_event + blink.min_delay)) return;
-                blink.last_event = now;
-                if (blink.timeout) clearTimeout(blink.timeout);
-                blink.status++;
-                if (blink.status == 3) {
-                    blink.status = 0;
+    function on_prediction(timestamp, source, target) {
+        if (source == 'motor') {
+            target = target == 0 ? 'left' : 'right';
+            grid._update(target);
+        }
+        if (source == 'blink') {
+            if (target == 1) {
+                if (blink._timeout) clearTimeout(blink._timeout);
+                blink._last_event = performance.now();
+                blink._status++;
+                if (blink._status == 3) {
+                    blink._status = 0;
                     grid._update('toggle');
                 } else {
-                    blink.timeout = setTimeout(() => {
-                        if (blink.status == 1) {
+                    blink._timeout = setTimeout(() => {
+                        if (blink._status == 1) {
                             grid._update('flip');
                         }
-                        else if (blink.status == 2) {
+                        else if (blink._status == 2) {
                             grid._update('select');
                         }
-                        blink.status = 0;
-                    }, blink.max_delay)
+                        blink._status = 0;
+                    }, blink.delay)
                 }
-                break;
+            }
         }
     }
+
+    await key();
+    logo.classList.toggle('hidden');
+    ready.classList.toggle('hidden');
+    training = new Training(io, settings.training);
+    await training.start();
+    loading.classList.toggle('hidden');
 
 })()
 
@@ -131,6 +135,8 @@ function get_css_var(name) {
  * @param {string} text
  */
 function speak(text) {
-    let utterance = new SpeechSynthesisUtterance(text);
-    speechSynthesis.speak(utterance);
+    if ('speechSynthesis' in window) {
+        let utterance = new SpeechSynthesisUtterance(text);
+        window.speechSynthesis.speak(utterance);
+    }
 }

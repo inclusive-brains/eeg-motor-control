@@ -60,6 +60,7 @@ class Grid {
 
         // Initialize events
         this.io = io;
+        this.io.event('grid_begins', this.options);
 
         // Initialize scheduler
         this.scheduler = new Scheduler();
@@ -158,9 +159,9 @@ class Grid {
         if (command == 'toggle') {
             this.active = !this.active;
             if (this.active) {
-                speak('Ready for command.')
+                speak('Ready for command.');
             } else {
-                speak('Neural interface disabled.')
+                speak('Neural interface disabled.');
             }
         }
         if (!this.active) return;
