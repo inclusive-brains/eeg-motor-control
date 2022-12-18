@@ -55,9 +55,9 @@ class Accumulate(Node):
                     indices = np.flip(np.argsort(scores))
                     if len(indices) < 2:
                         return
-                    if (indices[1] * self._threshold) < indices[0]:
+                    if (scores[indices[1]] * self._threshold) < scores[indices[0]]:
                         # Make a final decision and reset the buffer
-                        meta = {"target": int(indices[0]), "source": self._source}
+                        meta = {"target": int(scores[indices[0]]), "source": self._source}
                         self.o.data = make_event("predict", meta, False)
                         self.logger.debug(meta)
                         self._buffer = []

@@ -49,11 +49,11 @@ graphs:
             intercept_scaling: 1000.0
             solver: saga
   - id: predict
-    module: nodes.predict
+    module: nodes.asap
     class: Accumulate
     params:
-      buffer_size: 10
-      threshold: 2
+      threshold: 3 # For two classes, equivalent to 75% confidence
+      recovery: 15 # For a 100ms window, equivalent to 1.5s recovery between two predictions
       source: motor
   - id: pub
     module: timeflux.nodes.zmq
