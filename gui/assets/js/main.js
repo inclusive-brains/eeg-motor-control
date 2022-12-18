@@ -17,8 +17,7 @@ let model = {
 }
 
 let blink = {
-    delay: 500,
-    _last_event: 0,
+    delay: 700,
     _status: 0,
     _timeout: null
 };
@@ -80,7 +79,6 @@ let blink = {
         if (source == 'blink') {
             if (target == 1) {
                 if (blink._timeout) clearTimeout(blink._timeout);
-                blink._last_event = performance.now();
                 blink._status++;
                 if (blink._status == 3) {
                     blink._status = 0;
@@ -94,7 +92,7 @@ let blink = {
                             grid._update('select');
                         }
                         blink._status = 0;
-                    }, blink.delay)
+                    }, blink.delay - (microtime() - timestamp))
                 }
             }
         }
