@@ -18,7 +18,7 @@ class CognitiveLoad(Node):
     over frontal area.
 
     Attributes:
-        i_model (Port): Single-trial predictions from the ML node, expects DataFrame.
+        o (Port): Cognitive load metric, provides DataFrame
 
     See:
         [1] Dehais, F., Lafont, A., Roy, R., & Fairclough, S. (2020). A neuroergonomics approach to mental workload, engagement and human performance. Frontiers in neuroscience, 14, 268.
