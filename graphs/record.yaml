@@ -7,7 +7,7 @@ graphs:
       class: Sub
       params:
         #topics: [ raw, motion, eeg_quality, contact_quality, filtered, events ]
-        topics: [ raw, offsets, filtered, events, bitalino_signal, bitalino_offsets ]
+        topics: [ raw, offsets, filtered, events, bitalino_signal, bitalino_offsets, cognitiveload ]
     - id: save
       module: timeflux.nodes.hdf5
       class: Save
@@ -33,4 +33,6 @@ graphs:
         target: save:bitalino_signal
       - source: subscribe:bitalino_offsets
         target: save:bitalino_offsets
+      - source: subscribe:cognitiveload
+        target: save:metrics_cognitiveload
     rate: 1

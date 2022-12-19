@@ -4,6 +4,7 @@ import:
   - graphs/ecg_bitalino.yaml
   {% endif %}
   - graphs/classification.yaml
+  - graphs/metrics.yaml
   - graphs/record.yaml
   - graphs/debug.yaml
 
