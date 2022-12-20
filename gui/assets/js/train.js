@@ -72,9 +72,10 @@ class Training {
                 trials: 10,
                 duration: {
                     prep: 3000,
-                    on: 800,
-                    off_min: 2000,
-                    off_max: 3000
+                    stim: 1500,
+                    display: 800,
+                    rest_min: 0,
+                    rest_max: 500
                 },
                 instruction: 'Stay as still as possible. Blink <em>once</em> when you see a red dot.'
             }
@@ -240,14 +241,15 @@ class Training {
                 this.dot.classList.toggle('hidden');
                 this.io.event('stim', { status: true });
             });
-            await sleep(this.options.blink.duration.on);
-            await this.scheduler.asap(() => {
-                this.dot.classList.toggle('hidden');
-                this.marker.classList.toggle('hidden');
-                this.io.event('stim', { status: false });
-            });
-            let off = Math.floor(Math.random() * (this.options.blink.duration.off_max - this.options.blink.duration.off_min + 1) + this.options.blink.duration.off_min);
-            await sleep(off);
+            await sleep(this.options.blink.duration.display);
+            this.dot.classList.toggle('hidden');
+            this.marker.classList.toggle('hidden');
+            await sleep(this.options.blink.duration.stim - this.options.blink.duration.display);
+            this.io.event('stim', { status: false });
+            await sleep(this.options.blink.duration.stim);
+            await sleep(this.options.blink.duration.display);
+            let rest = Math.floor(Math.random() * (this.options.blink.duration.rest_max - this.options.blink.duration.rest_min + 1) + this.options.blink.duration.rest_min);
+            await sleep(rest);
             this.io.event('trial_ends');
         }
         this.io.event('blink-training_ends');

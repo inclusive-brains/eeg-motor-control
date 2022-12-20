@@ -91,18 +91,23 @@ graphs:
     class: Sub
     params:
       topics: [ filtered, events ]
+  - id: extract
+    module: timeflux.nodes.query
+    class: Match
+    params:
+      expression: ^F
   - id: epoch
     module: timeflux.nodes.epoch
     class: Samples
     params:
       trigger: stim
-      length: 0.5
+      length: 1.5
   - id: window
     module: timeflux.nodes.window
     class: Slide
     params:
-      length: 0.5
-      step: 0.1
+      length: 1.5
+      step: 0.2
   - id: classification
     module: timeflux.nodes.ml
     class: Pipeline
@@ -113,25 +118,27 @@ graphs:
       event_stop_accumulation: blink-training_ends
       event_start_training: blink-training_ends
       steps:
-        - module: timeflux.estimators.transformers.shape
-          class: Transpose
+        - module: estimators.mne
+          class: Vectorizer
+        - module: sklearn.preprocessing
+          class: StandardScaler
           args:
-            axes: [ 0, 2, 1 ]
-        - module: pyriemann.estimation
-          class: ERPCovariances
+            with_std: false
+        - module: estimators.eog
+          class: EOGFeature
+        - module: sklearn.svm
+          class: SVC
           args:
-            estimator: oas
-        - module: pyriemann.classification
-          class: TSclassifier
-          args:
-            metric: riemann
-            tsupdate: false
+            kernel: rbf
+            probability: true
+            C: 1.0
   - id: predict
     module: nodes.predict
     class: Accumulate
     params:
-      buffer_size: 10
-      threshold: 2
+      buffer_size: 1
+      threshold: 4
+      recovery: 0.9
       source: blink
   - id: pub
     module: timeflux.nodes.zmq
@@ -143,8 +150,10 @@ graphs:
   #   class: Display
   edges:
     - source: sub:filtered
+      target: extract
+    - source: extract
       target: epoch
-    - source: sub:filtered
+    - source: extract
       target: window
     - source: sub:events
       target: epoch:events
