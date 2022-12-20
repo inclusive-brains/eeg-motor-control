@@ -7,6 +7,7 @@ const message = document.getElementById('message');
 const ready = document.getElementById('ready');
 const loading = document.getElementById('loading');
 const main = document.getElementById('wrapper');
+const metrics = document.getElementById('metrics');
 
 let training = null;
 let grid = null;
@@ -34,11 +35,17 @@ let blink = {
     window.onbeforeunload = () => io.event('session_ends');
     io.subscribe('model');
     io.on('model', on_message);
+    io.subscribe('metrics');
+    io.on('metrics', on_message);
+
 
     window.addEventListener('keydown', (event) => {
         if (grid == null) return;
         if (['0', '1', '2'].includes(event.key)) {
             on_prediction(parseInt(event.key));
+        }
+        if (event.key == 'm') {
+            metrics.classList.toggle('hidden');
         }
         const commands = {
             ArrowRight: 'right',
@@ -59,6 +66,7 @@ let blink = {
                     if (model._trained == model._enabled) {
                         loading.classList.toggle('hidden');
                         main.classList.toggle('hidden');
+                        metrics.classList.toggle('hidden');
                         grid = new Grid(io, settings.grid);
                     }
                     break;
@@ -67,6 +75,8 @@ let blink = {
                         on_prediction(timestamp, row.data.source, row.data.target);
                     }
                     break;
+                case 'cognitive_load':
+                    set_css_var('--metric-cognitiveload', color_scale(1 - row.data));
             }
         }
     }
@@ -137,4 +147,24 @@ function speak(text) {
         let utterance = new SpeechSynthesisUtterance(text);
         window.speechSynthesis.speak(utterance);
     }
+}
+
+/**
+ * Color scale
+ *
+ * @param {number} normalized value between 0 and 1
+ * @return {string} hexadecimal color value from red to yellow to green
+ */
+function color_scale(value) {
+    value *= 100;
+    let r, g, b = 0;
+    if (value < 50) {
+        r = 255;
+        g = Math.round(5.1 * value);
+    } else {
+        g = 255;
+        r = Math.round(510 - 5.10 * value);
+    }
+    let h = r * 0x10000 + g * 0x100 + b * 0x1;
+    return '#' + ('000000' + h.toString(16)).slice(-6);
 }

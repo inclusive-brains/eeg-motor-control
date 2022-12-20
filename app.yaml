@@ -80,7 +80,7 @@ graphs:
       module: timeflux.nodes.zmq
       class: Sub
       params:
-        topics: [ model, filtered ]
+        topics: [ model, metrics, filtered ]
     - id: pub
       module: timeflux.nodes.zmq
       class: Pub
@@ -91,6 +91,8 @@ graphs:
         target: app:eeg
       - source: sub:model
         target: app:model
+      - source: sub:metrics
+        target: app:metrics
       - source: app:events
         target: pub
     rate: 10

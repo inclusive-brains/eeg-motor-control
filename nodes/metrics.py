@@ -5,6 +5,7 @@ from scipy.signal import welch
 from scipy.integrate import simps
 from timeflux.core.node import Node
 from timeflux.core.exceptions import WorkerInterrupt
+from timeflux.helpers.port import make_event
 
 class CognitiveLoad(Node):
     """Not a cognitive load metric.
@@ -62,7 +63,8 @@ class CognitiveLoad(Node):
             metric =  alpha / theta
             metric /= self._max_value
             if metric > 1: metric = 1.
-            self.o.set([metric], names=["cognitiveload"])
+            #self.o.set([metric], names=["cognitiveload"])
+            self.o.data = make_event("cognitive_load", metric)
 
 
 def bandpower(data, rate, bands, normalize=False):
