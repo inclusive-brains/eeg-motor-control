@@ -18,6 +18,7 @@ class CognitiveLoad(Node):
     over frontal area.
 
     Attributes:
+        i (Port): Default data input, expects DataFrame.
         o (Port): Cognitive load metric, provides DataFrame
 
     See:
@@ -32,6 +33,7 @@ class CognitiveLoad(Node):
 
     def __init__(self):
         self._channels = None
+        self._max_value = 1.5 # for normalization
 
     def update(self):
 
@@ -40,12 +42,12 @@ class CognitiveLoad(Node):
 
         if not self._channels:
             self._channels = list(self.i.data.columns)
-            r = re.compile('^O|P.*') # Match occipital and parietal channels
+            r = re.compile("^O|P") # Match occipital and parietal channels
             self._back = [channel for channel in self._channels if r.match(channel)]
             if not self._back:
                 self.logger.error("No occipital nor parietal channel found")
                 raise WorkerInterrupt()
-            r = re.compile('^F.*') # Match frontal and prefrontal channels
+            r = re.compile("^F") # Match frontal and prefrontal channels
             self._front = [channel for channel in self._channels if r.match(channel)]
             if not self._front:
                 self.logger.error("No frontal nor prefrontal channel found")
@@ -54,13 +56,14 @@ class CognitiveLoad(Node):
         # Compute metric
         bands = { "theta": (4, 8), "alpha": (8, 12)}
         bp = bandpower(self.i.data, self.i.meta["rate"], bands, normalize=True)
-        alpha = bp['alpha'].loc[self._back].mean()
-        theta = bp['theta'].loc[self._front].mean()
+        alpha = bp["alpha"].loc[self._back].mean()
+        theta = bp["theta"].loc[self._front].mean()
         if theta > 0:
             metric =  alpha / theta
-            # metric /= max_value  # TODO: normalization
+            metric /= self._max_value
             if metric > 1: metric = 1.
             self.o.set([metric], names=["cognitiveload"])
+
 
 def bandpower(data, rate, bands, normalize=False):
 
