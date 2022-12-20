@@ -7,6 +7,9 @@ import:
   - graphs/metrics.yaml
   - graphs/record.yaml
   - graphs/debug.yaml
+  {% if OSC_ENABLE == "true" %}
+  - graphs/osc.yaml
+  {% endif %}
 
 graphs:
 
