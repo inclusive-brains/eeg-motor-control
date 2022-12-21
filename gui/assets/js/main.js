@@ -18,7 +18,7 @@ let model = {
 }
 
 let blink = {
-    delay: 700,
+    delay: 1200,
     _status: 0,
     _timeout: null
 };
