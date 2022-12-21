@@ -41,11 +41,11 @@ let blink = {
 
     window.addEventListener('keydown', (event) => {
         if (grid == null) return;
-        if (['0', '1', '2'].includes(event.key)) {
-            on_prediction(parseInt(event.key));
-        }
         if (event.key == 'm') {
             metrics.classList.toggle('hidden');
+        }
+        if (event.key == 'b') {
+            on_prediction(microtime(), 'blink', 1);
         }
         const commands = {
             ArrowRight: 'right',
