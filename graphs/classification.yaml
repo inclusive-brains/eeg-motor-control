@@ -138,7 +138,8 @@ graphs:
     params:
       buffer_size: 1
       threshold: 4
-      recovery: 0.9
+      recovery: 0.8
+      classes: [ 1 ] # ignore recovery for resting state
       source: blink
   - id: pub
     module: timeflux.nodes.zmq

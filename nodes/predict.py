@@ -10,6 +10,8 @@ class Accumulate(Node):
     This node accumulates the probabilities of single-trial classifications from a ML node.
     When enough confidence is reached for a specific class, a final prediction is made.
     Confidence is defined by the threshold ratio between the two best candidates, after summing the probabilities for each class.
+    Optionnaly, a recovery period can be applied for all classes or a specific set of classes. This is useful to avoid
+    emitting predictions multiple times for the same epoch.
 
     Attributes:
         i_model (Port): Single-trial predictions from the ML node, expects DataFrame.
@@ -18,14 +20,16 @@ class Accumulate(Node):
     Args:
         threshold (float): ratio between the two best candidates to reach confidence (default: 2).
         buffer_size (int): number of predictions to accumulate for each class (default: 10).
-        recovery (int): number of predictions to ignore after a final decision, to avoid classifying twice the same event (default: 5).
+        recovery (int): number of epochs to ignore after a final decision, to avoid classifying twice the same event (default: 5).
+        classes (list): if not None, apply the recovery period only for the specified classes (default: None).
         source (string): an optional unique identifier used to differentiate predictions from multiple models.
     """
 
-    def __init__(self, threshold=2, buffer_size=10, recovery=5, source=""):
+    def __init__(self, threshold=2, buffer_size=10, recovery=5, classes=None, source=""):
         self._threshold = threshold
         self._buffer_size = buffer_size
         self._recovery = recovery
+        self._classes = classes
         self._source = source
         self._buffer = []
         self._ignore = 0
@@ -57,8 +61,9 @@ class Accumulate(Node):
                         return
                     if (scores[indices[1]] * self._threshold) < scores[indices[0]]:
                         # Make a final decision and reset the buffer
-                        meta = {"target": int(scores[indices[0]]), "source": self._source}
+                        meta = {"target": int(indices[0]), "source": self._source}
                         self.o.data = make_event("predict", meta, False)
                         self.logger.debug(meta)
                         self._buffer = []
-                        self._ignore = self._recovery
+                        if self._classes is None or indices[0] in self._classes:
+                            self._ignore = self._recovery
