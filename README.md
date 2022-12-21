@@ -59,7 +59,7 @@ The application is fully configurable in the `app.yaml` file and other sub-graph
 | DEVICE | EEG headset: dummy (random data), consciouslabs, emotiv, openbci | dummy |
 | BITALINO | address of a BITalino device | off |
 | BASELINE_ENABLE | enable or disable baseline | true |
-| BASELINE_DURATION | duration of baseline, in milliseconds |
+| BASELINE_DURATION | duration of baseline, in milliseconds | 45000 |
 | MOTOR_ENABLE | enable or disable motor training | true |
 | MOTOR_IMAGERY | illustration for motor imagery: generic (arrows), rotation, extension, flexion | extension |
 | MOTOR_BLOCKS | blocks per session | 7 |
@@ -80,9 +80,9 @@ If required, advanced grid interface options can be configured directly in the `
 
 | Parameter | Type | Description | Default |
 | --- | --- | --- | --- |
-| grid.symbols | string | symbols, one character per cell (emoji symbols supported) | ‘123456789’ |
+| grid.symbols | string | symbols, one character per cell (emoji symbols supported) | '123456789' |
 | grid.shape.columns | number | number of columns in the grid (the number of rows will be adjusted automatically) | 3 |
-| grid.shape.ratio | string | grid aspect ratio (examples: '1:1', '16:9'), an empty string means 100% width and 100% height | '' |
+| grid.shape.ratio | string | grid aspect ratio (examples: '1:1', '16:9'), an empty string means 100% width and 100% height | '1:1' |
 | grid.shape.borders | boolean | if the borders must be drawn | true |
 | grid.shape.wrap | boolean | if the selection must warp around | false |
 
@@ -96,10 +96,10 @@ A random data graph is also available in order to test the interface without an 
 
 ## Calibration
 
-A typical session starts with a calibration session:
+A typical session starts with a calibration session.
 
 - Baseline: not currently used, but may be useful in the future ; activated by default in order to provide data for later analysis, but can safely be disabled.
-- Motor imagery: with a Conscious Labs headset (16 electrodes), 30 to 40 repetitions for each class are required.
+- Motor imagery: with a Conscious Labs headset (16 channels), 30 to 40 repetitions for each class are required.
 - Blinks: currently, about 10 blinks followed by a rest period are necessary to achieve correct classification.
 
 ## Recording
@@ -114,7 +114,7 @@ The signal is continuously windowed into 900 ms epochs with a 100 ms step. Each 
 
 ### Blinks
 
-A separate model is used to classify single blinks on 1500 ms epochs with a 200 ms step. We keep only the frontal and pre-frontal channels, vectorize the data, scale it, and extract statistical metrics. These features are sent to a Support Vector Machine (SVM) algorithm using a Radial Basis Function (RBF) kernel that outputs a prediction. Predictions with a confidence score over 80 % are sent to the UI. The recovery period is 800 ms. The UI is responsible for detecting double and triple blinks. Consecutive blinks must happen in a 1200 ms window.
+A separate model is used to classify single blinks on 1500 ms epochs with a 200 ms step. We keep only the frontal and pre-frontal channels, vectorize the data, scale it, and extract statistical metrics. These features are sent to a Support Vector Machine (SVM) algorithm using a Radial Basis Function (RBF) kernel that outputs a prediction. Predictions with a confidence score over 80 % are sent to the UI. The recovery period is 800 ms. The UI is responsible for detecting double and triple blinks. Consecutive blinks must happen within a 1200 ms window.
 
 ### Cognitive load
 
