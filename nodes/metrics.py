@@ -10,13 +10,10 @@ from timeflux.helpers.port import make_event
 class CognitiveLoad(Node):
     """Not a cognitive load metric.
 
-    Cognitive load and fatigue encompass several situations, related to task engagement and arousal, a comprehensive review is
-    proposed here [1]. It points out an interesting analysis that the theory of mental "ressource", while appealing, is not
-    supported by any experimental evidence despite several decades of research. It is thus better to evaluate cognitive with
-    respect to task performance.
-
-    Therefore, it is mostly interesting to monitor variation of alpha rhythm [2, 3, 6] over occipital/parietal site and theta [4, 5]
-    over frontal area.
+    Cognitive load and fatigue encompass several situations, related to task engagement and arousal. A comprehensive review [1]
+    points out that the theory of mental "ressource", while appealing, is not supported by any experimental evidence despite
+    several decades of research. It is thus better to evaluate cognitive with respect to task performance. Therefore, our pipeline
+    monitors variations of alpha rhythm [2, 3, 6] over occipital/parietal sites and theta [4, 5] over frontal/prefrontal areas.
 
     Attributes:
         i (Port): Default data input, expects DataFrame.
