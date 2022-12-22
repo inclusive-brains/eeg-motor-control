@@ -9,7 +9,7 @@ In this version, two separate machine-learning models are computed after a calib
 First, install Timeflux in a clean environment:
 
 ```
-$ conda create --name timeflux python=3.10
+$ conda create --name timeflux python=3.10 pytables
 $ conda activate timeflux
 ```
 
