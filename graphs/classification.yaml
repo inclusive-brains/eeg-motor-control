@@ -41,13 +41,18 @@ graphs:
           class: TangentSpace
           args:
             metric: riemann
+        # - module: sklearn.linear_model
+        #   class: LogisticRegression
+        #   args:
+        #     penalty: elasticnet
+        #     l1_ratio: 0.15
+        #     intercept_scaling: 1000.0
+        #     solver: saga
         - module: sklearn.linear_model
           class: LogisticRegression
           args:
-            penalty: elasticnet
-            l1_ratio: 0.15
-            intercept_scaling: 1000.0
-            solver: saga
+            penalty: l2
+            solver: lbfgs
   - id: predict
     module: nodes.asap
     class: Accumulate
