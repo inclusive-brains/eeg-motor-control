@@ -180,8 +180,10 @@ class Training {
                 this.marker.classList.toggle('hidden');
             }
             this.io.event('block_begins');
+            let trials = new BalancedRandom(this.options.motor.imagery.length, this.options.motor.trials);
             for (let trial = 0; trial < this.options.motor.trials; trial++) {
-                let id = Math.floor(Math.random() * this.options.motor.imagery.length);
+                //let id = Math.floor(Math.random() * this.options.motor.imagery.length);
+                let id = trials.next();
                 let media = document.getElementById(`media-${id}`);
                 if (this.options.motor.media) {
                     if (this.options.motor.media[id].type == 'video') {
@@ -253,6 +255,51 @@ class Training {
             this.io.event('trial_ends');
         }
         this.io.event('blink-training_ends');
+    }
+
+}
+
+
+/**
+ * Balanced random generator
+ */
+class BalancedRandom {
+
+    /**
+     *  Generate a balanced array of values
+     *
+     *  @param {number} n_classes
+     *  @param {number} n_trials
+     */
+    constructor(n_classes, n_trials) {
+        let items = [...Array(n_classes).keys()];
+        this.values = Array.from({length: Math.ceil(n_trials / n_classes)}, () => items).flat();
+        this.values = this.values.slice(0, n_trials);
+        this._shuffle(this.values);
+    }
+
+    /**
+     * Get the next element in array
+     */
+    next() {
+        return this.values.shift();
+    }
+
+    /**
+     * Shuffle an array
+     *
+     * This is done in-place. Make a copy first with .slice(0) if you don't want to
+     * modify the original array.
+     *
+     * @param {array} array
+     *
+     * @see: https://en.wikipedia.org/wiki/Fisher%E2%80%93Yates_shuffle#The_modern_algorithm
+     */
+    _shuffle(array) {
+        for (let i = array.length - 1; i > 0; i--) {
+            const j = Math.floor(Math.random() * (i + 1));
+            [array[i], array[j]] = [array[j], array[i]];
+        }
     }
 
 }
