@@ -9,7 +9,8 @@ class Accumulate(Node):
 
     This node accumulates the probabilities of single-trial classifications from a ML node.
     When enough confidence is reached for a specific class, a final prediction is made.
-    Confidence is defined by the threshold ratio between the two best candidates, after summing the probabilities for each class.
+    Confidence is defined by the threshold ratio between the two best candidates, after adding or multiplying the probabilities
+    for each class.
     Optionnaly, a recovery period can be applied for all classes or a specific set of classes. This is useful to avoid
     emitting predictions multiple times for the same epoch.
 
@@ -21,14 +22,16 @@ class Accumulate(Node):
         threshold (float): ratio between the two best candidates to reach confidence (default: 2).
         buffer_size (int): number of predictions to accumulate for each class (default: 10).
         recovery (int): number of epochs to ignore after a final decision, to avoid classifying twice the same event (default: 5).
+        scorer (string): either 'sum' or 'prod' (default: 'sum').
         classes (list): if not None, apply the recovery period only for the specified classes (default: None).
         source (string): an optional unique identifier used to differentiate predictions from multiple models.
     """
 
-    def __init__(self, threshold=2, buffer_size=10, recovery=5, classes=None, source=""):
+    def __init__(self, threshold=2, buffer_size=10, recovery=5, scorer="sum", classes=None, source=""):
         self._threshold = threshold
         self._buffer_size = buffer_size
         self._recovery = recovery
+        self._scorer = scorer
         self._classes = classes
         self._source = source
         self._buffer = []
@@ -54,8 +57,10 @@ class Accumulate(Node):
                     self._buffer.append(proba)
                     if len(self._buffer) > self._buffer_size:
                         self._buffer.pop(0)
+                    # Score
+                    scores = getattr(self, f"_scorer_{self._scorer}")()
+                    scores /= scores.sum() # Not strictly required but more readable
                     # Sort
-                    scores = np.sum(np.array(self._buffer), axis=0)
                     indices = np.flip(np.argsort(scores))
                     if len(indices) < 2:
                         return
@@ -67,3 +72,9 @@ class Accumulate(Node):
                         self._buffer = []
                         if self._classes is None or indices[0] in self._classes:
                             self._ignore = self._recovery
+
+    def _scorer_sum(self):
+        return np.sum(np.array(self._buffer), axis=0)
+
+    def _scorer_prod(self):
+        return np.prod(np.array(self._buffer), axis=0)
