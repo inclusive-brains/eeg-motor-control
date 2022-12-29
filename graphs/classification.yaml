@@ -53,12 +53,21 @@ graphs:
           args:
             penalty: l2
             solver: lbfgs
+  # - id: predict
+  #   module: nodes.asap
+  #   class: Accumulate
+  #   params:
+  #     threshold: 3 # For two classes, equivalent to 75% confidence
+  #     recovery: 15 # For a 100ms window, equivalent to 1.5s recovery between two predictions
+  #     source: motor
   - id: predict
-    module: nodes.asap
+    module: nodes.predict
     class: Accumulate
     params:
-      threshold: 3 # For two classes, equivalent to 75% confidence
-      recovery: 15 # For a 100ms window, equivalent to 1.5s recovery between two predictions
+      threshold: 4   # For two classes, equivalent to 80% confidence
+      recovery: 25   # For a 100ms window, equivalent to 2.5s recovery between two predictions
+      buffer_size: 5 # Try to prevent misfired predictions
+      scorer: prod   # Bayesian accumulation
       source: motor
   - id: pub
     module: timeflux.nodes.zmq
