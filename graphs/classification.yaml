@@ -64,10 +64,10 @@ graphs:
     module: nodes.predict
     class: Accumulate
     params:
-      threshold: 4   # For two classes, equivalent to 80% confidence
-      recovery: 25   # For a 100ms window, equivalent to 2.5s recovery between two predictions
-      buffer_size: 5 # Try to prevent misfired predictions
-      scorer: prod   # Bayesian accumulation
+      threshold: 4    # For two classes, equivalent to 80% confidence
+      recovery: 20    # For a 100ms window, equivalent to 2s recovery between two predictions
+      buffer_size: 10 # Prevent excessive accumulation
+      scorer: sum     # Sum is slower than product, and should avoid bayesian explosion
       source: motor
   - id: pub
     module: timeflux.nodes.zmq
