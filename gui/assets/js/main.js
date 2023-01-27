@@ -8,6 +8,7 @@ const ready = document.getElementById('ready');
 const loading = document.getElementById('loading');
 const main = document.getElementById('wrapper');
 const metrics = document.getElementById('metrics');
+const overlay = document.getElementById('overlay');
 
 let training = null;
 let grid = null;
@@ -23,13 +24,22 @@ let blink = {
     _timeout: null
 };
 
+let config = {
+    threshold: null,
+    buffersize: null,
+    recovery: null,
+    bias: null
+};
+
 (async () => {
 
+    // Load settings
     let settings = await load_settings();
     settings = settings[app];
     model._enabled += (settings.training?.motor?.enable ?? true);
     model._enabled += (settings.training?.blink?.enable ?? true);
 
+    // Initialize I/O
     let io = new IO();
     io.on('connect', () => io.event('session_begins', settings));
     window.onbeforeunload = () => io.event('session_ends');
@@ -38,8 +48,29 @@ let blink = {
     io.subscribe('metrics');
     io.on('metrics', on_message);
 
+    // Accumulation setttings
+    io.event('get_motor_accumulation');
+    for (let setting of ['threshold', 'buffer_size', 'recovery']) {
+        let value = document.getElementById(setting + '-value');
+        document.getElementById(setting + '-slider').addEventListener('input', (event) => {
+            value.innerHTML = event.target.value;
+            config[setting] = parseFloat(event.target.value);
+        });
+        document.getElementById(setting + '-slider').addEventListener('change', (event) => {
+            io.event('reset_motor_accumulation', config);
+        });
+    }
+    document.getElementById('scorer').addEventListener('change', (event) => {
+        config['scorer'] = event.target.value;
+        io.event('reset_motor_accumulation', config);
+    });
 
+    // Keystroke listening
     window.addEventListener('keydown', (event) => {
+        if (event.key == 's') {
+            overlay.classList.toggle('hidden');
+        }
+
         if (grid == null) return;
         if (event.key == 'm') {
             metrics.classList.toggle('hidden');
@@ -58,6 +89,7 @@ let blink = {
         if (command) grid._update(command);
     })
 
+    // Handle messages
     function on_message(data, meta) {
         for (const [timestamp, row] of Object.entries(data)) {
             switch (row.label) {
@@ -77,10 +109,19 @@ let blink = {
                     break;
                 case 'cognitive_load':
                     set_css_var('--metric-cognitiveload', color_scale(1 - row.data));
+                    break;
+                case 'accumulation':
+                    for (let setting of ['threshold', 'buffer_size', 'recovery']) {
+                        document.getElementById(setting + '-slider').value = row.data[setting];
+                        document.getElementById(setting + '-value').innerHTML = row.data[setting];
+                    }
+                    document.getElementById('scorer').value = row.data.scorer;
+                    break;
             }
         }
     }
 
+    // Handle predictions
     function on_prediction(timestamp, source, target) {
         if (source == 'motor') {
             target = target == 0 ? 'left' : 'right';
@@ -108,6 +149,7 @@ let blink = {
         }
     }
 
+    // Start training
     await key();
     logo.classList.toggle('hidden');
     ready.classList.toggle('hidden');

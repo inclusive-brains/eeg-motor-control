@@ -64,7 +64,7 @@ graphs:
     module: nodes.predict
     class: Accumulate
     params:
-      threshold: 4    # For two classes, equivalent to 80% confidence
+      threshold: 3    # For two classes, equivalent to 75% confidence
       recovery: 20    # For a 100ms window, equivalent to 2s recovery between two predictions
       buffer_size: 10 # Prevent excessive accumulation
       scorer: sum     # Sum is slower than product, and should avoid bayesian explosion
@@ -94,6 +94,8 @@ graphs:
       target: predict:model
     - source: predict
       target: pub
+    - source: sub:events
+      target: predict:reset
     # - source: predict
     #   target: display
   rate: 10

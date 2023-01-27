@@ -16,12 +16,13 @@ class Accumulate(Node):
 
     Attributes:
         i_model (Port): Single-trial predictions from the ML node, expects DataFrame.
+        i_reset (Port): Reset events for updating arguments, expects DataFrame.
         o_events (Port): Final predictions, provides DataFrame
 
     Args:
         threshold (float): ratio between the two best candidates to reach confidence (default: 2).
         buffer_size (int): number of predictions to accumulate for each class (default: 10).
-        recovery (int): number of epochs to ignore after a final decision, to avoid classifying twice the same event (default: 5).
+        recovery (int): number of epochs to ignore after a final decision, to avoid classifying the same event twice (default: 5).
         scorer (string): either 'sum' or 'prod' (default: 'sum').
         classes (list): if not None, apply the recovery period only for the specified classes (default: None).
         source (string): an optional unique identifier used to differentiate predictions from multiple models.
@@ -38,6 +39,15 @@ class Accumulate(Node):
         self._ignore = 0
 
     def update(self):
+
+        # Loop through the reset events
+        if self.i_reset.ready():
+            for timestamp, row in self.i_reset.data.iterrows():
+                if row.label == f"reset_{self._source}_accumulation":
+                    self._reset(json.loads(row["data"]))
+                if row.label == f"get_{self._source}_accumulation":
+                    meta = {"threshold": self._threshold, "buffer_size": self._buffer_size, "recovery": self._recovery, "scorer": self._scorer, "source": self._source}
+                    self.o.data = make_event(f"accumulation", meta, False)
 
         # Loop through the model events
         if self.i_model.ready():
@@ -72,6 +82,15 @@ class Accumulate(Node):
                         self._buffer = []
                         if self._classes is None or indices[0] in self._classes:
                             self._ignore = self._recovery
+
+    def _reset(self, settings):
+        if settings.get("threshold"): self._threshold = settings["threshold"]
+        if settings.get("buffer_size"): self._buffer_size = settings["buffer_size"]
+        if settings.get("recovery"): self._recovery = settings["recovery"]
+        if settings.get("bias"): self._bias = settings["bias"]
+        if settings.get("scorer"): self._scorer = settings["scorer"]
+        self._buffer = []
+        self._ignore = 0
 
     def _scorer_sum(self):
         return np.sum(np.array(self._buffer), axis=0)

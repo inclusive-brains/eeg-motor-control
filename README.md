@@ -133,6 +133,7 @@ For testing or for demo purposes, when an EEG headset is not readily available, 
 | c | triple blink | toggle |
 | b | - | emulates one blink |
 | m | - | show/hide metrics |
+| s | - | show/hide accumulation settings |
 
 ## Other modalities
 
