@@ -168,7 +168,11 @@ class Training {
         this.message.innerHTML = '';
         this.ready.classList.toggle('hidden');
         this.io.event('motor-training_begins');
+        this.marker.classList.toggle('hidden');
+        await sleep(this.options.motor.duration.prep);
+        this.marker.classList.toggle('hidden');
         for (let block = 0; block < this.options.motor.blocks; block++) {
+            /*
             if (this.options.motor.duration.rest == 0) {
                 this.marker.classList.toggle('hidden');
                 this.ready.classList.toggle('hidden');
@@ -179,6 +183,7 @@ class Training {
                 await sleep(this.options.motor.duration.prep);
                 this.marker.classList.toggle('hidden');
             }
+            */
             this.io.event('block_begins');
             let trials = new BalancedRandom(this.options.motor.imagery.length, this.options.motor.trials);
             for (let trial = 0; trial < this.options.motor.trials; trial++) {
@@ -216,13 +221,13 @@ class Training {
                 await sleep(this.options.motor.duration.off);
             }
             this.io.event('block_ends');
-            if (this.options.motor.duration.rest > 0) {
-                if (block + 1 < this.options.motor.blocks) {
-                    this.marker.classList.toggle('hidden');
-                    await sleep(this.options.motor.duration.rest);
-                    this.marker.classList.toggle('hidden');
+            //if (this.options.motor.duration.rest > 0) {
+            if (block + 1 < this.options.motor.blocks) {
+                this.marker.classList.toggle('hidden');
+                await sleep(this.options.motor.duration.rest);
+                this.marker.classList.toggle('hidden');
                 }
-            }
+            //}
         }
         this.io.event('motor-training_ends');
     }
