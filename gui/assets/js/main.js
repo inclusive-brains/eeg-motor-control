@@ -28,7 +28,8 @@ let config = {
     threshold: null,
     buffersize: null,
     recovery: null,
-    bias: null
+    scorer: "sum",
+    feedback: true
 };
 
 (async () => {
@@ -63,6 +64,15 @@ let config = {
     document.getElementById('scorer').addEventListener('change', (event) => {
         config['scorer'] = event.target.value;
         io.event('reset_motor_accumulation', config);
+    });
+    document.getElementById('feedback').addEventListener('change', (event) => {
+        config['feedback'] = event.target.value == 1 ? true : false;
+        io.event('reset_motor_accumulation', config);
+        if (config['feedback']) {
+            grid._feedback([.5, .5]);
+        } else {
+            grid._feedback([1, 1]);
+        }
     });
 
     // Keystroke listening
@@ -102,6 +112,11 @@ let config = {
                         grid = new Grid(io, settings.grid);
                     }
                     break;
+                case 'feedback':
+                    if (grid != null) {
+                        on_feedback(timestamp, row.data.source, row.data.scores);
+                    }
+                    break;
                 case 'predict':
                     if (grid != null) {
                         on_prediction(timestamp, row.data.source, row.data.target);
@@ -118,6 +133,13 @@ let config = {
                     document.getElementById('scorer').value = row.data.scorer;
                     break;
             }
+        }
+    }
+
+    // Handle feedback
+    function on_feedback(timestamp, source, scores) {
+        if (source == 'motor' && config['feedback']) {
+            grid._feedback(scores);
         }
     }
 

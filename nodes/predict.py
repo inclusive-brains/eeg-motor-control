@@ -17,22 +17,24 @@ class Accumulate(Node):
     Attributes:
         i_model (Port): Single-trial predictions from the ML node, expects DataFrame.
         i_reset (Port): Reset events for updating arguments, expects DataFrame.
-        o_events (Port): Final predictions, provides DataFrame
+        o_events (Port): Final predictions and optional feedback, provides DataFrame
 
     Args:
         threshold (float): ratio between the two best candidates to reach confidence (default: 2).
         buffer_size (int): number of predictions to accumulate for each class (default: 10).
         recovery (int): number of epochs to ignore after a final decision, to avoid classifying the same event twice (default: 5).
         scorer (string): either 'sum' or 'prod' (default: 'sum').
+        feedback (bool): if True, continuous feedback events will be sent (default: False).
         classes (list): if not None, apply the recovery period only for the specified classes (default: None).
         source (string): an optional unique identifier used to differentiate predictions from multiple models.
     """
 
-    def __init__(self, threshold=2, buffer_size=10, recovery=5, scorer="sum", classes=None, source=""):
+    def __init__(self, threshold=2, buffer_size=10, recovery=5, scorer="sum", feedback=False, classes=None, source=""):
         self._threshold = threshold
         self._buffer_size = buffer_size
         self._recovery = recovery
         self._scorer = scorer
+        self._feedback = feedback
         self._classes = classes
         self._source = source
         self._buffer = []
@@ -70,6 +72,10 @@ class Accumulate(Node):
                     # Score
                     scores = getattr(self, f"_scorer_{self._scorer}")()
                     scores /= scores.sum() # Not strictly required but more readable
+                    # Send continuous feedback
+                    if self._feedback:
+                        meta = {"scores": list(scores), "source": self._source}
+                        self.o.data = make_event("feedback", meta, False)
                     # Sort
                     indices = np.flip(np.argsort(scores))
                     if len(indices) < 2:
@@ -89,6 +95,7 @@ class Accumulate(Node):
         if settings.get("recovery"): self._recovery = settings["recovery"]
         if settings.get("bias"): self._bias = settings["bias"]
         if settings.get("scorer"): self._scorer = settings["scorer"]
+        if settings.get("feedback") != None: self._feedback = settings["feedback"]
         self._buffer = []
         self._ignore = 0
 

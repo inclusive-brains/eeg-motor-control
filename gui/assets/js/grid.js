@@ -263,5 +263,13 @@ class Grid {
 
     }
 
+    /**
+     * Feedback
+     */
+    _feedback(scores) {
+        document.getElementsByClassName('left')[0].setAttribute('style', `opacity: ${scores[0]}`);
+        document.getElementsByClassName('right')[0].setAttribute('style', `opacity: ${scores[1]}`);
+    }
+
 }
 
