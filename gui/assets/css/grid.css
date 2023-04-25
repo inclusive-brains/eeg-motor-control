@@ -11,7 +11,8 @@
     --font-color-active: white;
     --background-color-active: #008000;
     --grid-border-color: gray;
-    --grid-border-size: 1px;
+    /*--grid-border-size: 1px;*/
+    --grid-border-size: 0px;
     --grid-width: 100%;
     --grid-height: 100%;
     --grid-padding: 50px;
@@ -78,35 +79,37 @@
 .cell.left {
     color: var(--font-color-side);
     background-color: var(--background-color-side);
+    z-index: 1;
 }
 
 .cell.left::before {
     content: "";
     position: absolute;
-    left:  calc(-100% / 3 - 2px);
+    /*left:  calc(-100% / 3 - 2px);*/
+    left:  calc(-100% / 3 + 1px);
     width:  calc(100% / 3);
     height: calc(100%);
     background: var(--background-color-side);
     clip-path: polygon(100% 100%, 50% 50%, 100% 0%);
     border: var(--grid-border-size) var(--background-color-side) solid;
-    z-index: 1;
 }
 
 .cell.right {
     color: var(--font-color-side);
     background-color: var(--background-color-side);
+    z-index: 1;
 }
 
 .cell.right::after {
     content: "";
     position: absolute;
-    right:  calc(-100% / 3 - 1px);
+    /*right:  calc(-100% / 3 - 1px);*/
+    right:  calc(-100% / 3 + 1px);
     width:  calc(100% / 3);
     height: 100%;
     background:  var(--background-color-side);
     clip-path: polygon(0% 0%, 50% 50%, 0% 100%);
     border: var(--grid-border-size) var(--background-color-side) solid;
-    z-index: 1;
 }
 
 .cell.active {

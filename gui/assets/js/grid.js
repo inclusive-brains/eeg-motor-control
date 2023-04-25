@@ -267,8 +267,14 @@ class Grid {
      * Feedback
      */
     _feedback(scores) {
-        document.getElementsByClassName('left')[0].setAttribute('style', `opacity: ${scores[0]}`);
-        document.getElementsByClassName('right')[0].setAttribute('style', `opacity: ${scores[1]}`);
+        Array.from(document.querySelectorAll('.cell')).forEach((el) => el.removeAttribute('style'));
+        const cells = ['left', 'right'];
+        for (const i in cells) {
+            const element = document.getElementsByClassName(cells[i])[0]
+            if (element != undefined) {
+                element.setAttribute('style', `opacity: ${scores[i]}`);
+            }
+        }
     }
 
 }

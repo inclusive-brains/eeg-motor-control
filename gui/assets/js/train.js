@@ -259,6 +259,7 @@ class Training {
             await sleep(rest);
             this.io.event('trial_ends');
         }
+        this.marker.classList.toggle('hidden');
         this.io.event('blink-training_ends');
     }
 
