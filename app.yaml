@@ -68,10 +68,12 @@ graphs:
                 media:
                   - path: assets/media/arrow_left.png
                     width: 320
-                    position: left
+                    #position: left
+                    position: center
                   - path: assets/media/arrow_right.png
                     width: 320
-                    position: right
+                    #position: right
+                    position: center
                 {% endif %}
               blink:
                 enable: {{ BLINK_ENABLE }}
