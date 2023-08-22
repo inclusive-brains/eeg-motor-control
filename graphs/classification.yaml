@@ -112,7 +112,7 @@ graphs:
     module: timeflux.nodes.query
     class: Match
     params:
-      expression: ^F
+      expression: "^A*F"
   - id: epoch
     module: timeflux.nodes.epoch
     class: Samples
