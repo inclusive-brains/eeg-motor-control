@@ -96,10 +96,14 @@ graphs:
         target: app:eeg
       - source: sub:model
         target: app:model
-      - source: sub:metrics
-        target: app:metrics
+      - source: sub:metrics_cognitiveload
+        target: app:metrics_cognitiveload
+      - source: sub:metrics_concentration
+        target: app:metrics_concentration
+      - source: sub:metrics_stress
+        target: app:metrics_stress
+      - source: sub:metrics_arousal
+        target: app:metrics_arousal
       - source: app:events
         target: pub
     rate: 10
-
-
