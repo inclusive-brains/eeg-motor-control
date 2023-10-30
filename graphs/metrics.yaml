@@ -1,6 +1,6 @@
 graphs:
 
-- id: CognitiveLoad
+- id: Metrics
   nodes:
   - id: sub
     module: timeflux.nodes.zmq
@@ -11,30 +11,94 @@ graphs:
     module: timeflux.nodes.window
     class: Slide
     params:
-      length: 1
-      step: 0.5
+      length: 3
+      step: 0.3
   - id: cognitiveload
     module: nodes.ratio
     class: Ratio
     params:
-      a: ["^O|P", [8, 12]]
-      b: ["^A*F", [4, 8]]
+      a: ["^A*F", [4, 8]]
+      b: ["^O|P", [8, 12]]
       metric: cognitive_load
-  - id: pub
+  - id: concentration
+    module: nodes.ratio
+    class: Ratio
+    params:
+      a: ["[A-Z]*[0-9]", [12, 30]]
+      b: ["[A-Z]*[0-9]", [4, 8]]
+      metric: concentration
+  - id: stress
+    module: nodes.ratio
+    class: Ratio
+    params:
+      a: ["[A-Z]*[0-9]", [22, 30]]
+      b: ["[A-Z]*[0-9]", [8, 12]]
+      metric: stress
+  - id: arousal
+    module: nodes.ratio
+    class: Ratio
+    params:
+      a: ["[A-Z]*[0-9]", [8, 12]]
+      b: ["[A-Z]*[0-9]", [13, 30]]
+      metric: arousal
+  - id: pub_cognitiveload
     module: timeflux.nodes.zmq
     class: Pub
     params:
-      topic: metrics
-  # - id: display
+      topic: metrics_cognitiveload
+  - id: pub_concentration
+    module: timeflux.nodes.zmq
+    class: Pub
+    params:
+      topic: metrics_concentration
+  - id: pub_stress
+    module: timeflux.nodes.zmq
+    class: Pub
+    params:
+      topic: metrics_stress
+  - id: pub_arousal
+    module: timeflux.nodes.zmq
+    class: Pub
+    params:
+      topic: metrics_arousal
+  # - id: display_concentration
   #   module: timeflux.nodes.debug
   #   class: Display
+  # - id: display_cognitiveload
+  #   module: timeflux.nodes.debug
+  #   class: Display
+  # - id: display_stress
+  #   module: timeflux.nodes.debug
+  #   class: Display
+  # - id: display_arousal
+  #   module: timeflux.nodes.debug
+  #   class: Display
+
   edges:
     - source: sub:filtered
       target: window
     - source: window
       target: cognitiveload
     - source: cognitiveload
-      target: pub
-    # - source: cognitiveload
-    #   target: display
+      target: pub_cognitiveload
+    - source: window
+      target: concentration
+    - source: concentration
+      target: pub_concentration
+    - source: window
+      target: stress
+    - source: stress
+      target: pub_stress
+    - source: window
+      target: arousal
+    - source: arousal
+      target: pub_arousal
+  # - source: cognitiveload
+  #   target: display_cognitiveload
+  # - source: concentration
+  #   target: display_concentration
+  # - source: stress
+  #   target: display_stress
+  # - source: arousal
+  #   target: display_arousal
   rate: 10
