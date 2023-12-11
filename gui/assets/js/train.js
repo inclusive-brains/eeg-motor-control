@@ -24,7 +24,8 @@ class Training {
      * @param {number} [duration.rest] - rest duration between blocks, in ms
      * @param {number} [duration.on] - duration of the instruction message, in ms
      * @param {number} [duration.off] - blank screen duration after each instruction, in ms
-     * @param {number} [duration.pause] - pause duration before actually playing a video, in ms
+     * @param {number} [duration.pause_before] - pause duration before actually playing a video, in ms
+     * @param {number} [duration.pause_after] - pause duration after playing a video and before sending the event, in ms
      * @param {string[]} [instructions] - list of instructions
      * @param {Object[]} [media] - optional list of videos or images, in the same order as instructions
      * @param {string} media[].path - file source
@@ -49,7 +50,8 @@ class Training {
                     rest: 10000,
                     on: 3000,
                     off: 2000,
-                    pause: 0
+                    pause_before: 0,
+                    pause_after: 0
                 },
                 instruction: 'Stay as still as possible. Try to stay in sync, and <em>feel</em> the sensation as you <em>imagine</em> doing the movement displayed on the screen.',
                 imagery: [
@@ -195,7 +197,7 @@ class Training {
                         reset(media);
                     }
                     media.classList.toggle('hidden');
-                    await sleep(this.options.motor.duration.pause);
+                    await sleep(this.options.motor.duration.pause_before);
                 }
                 await this.scheduler.asap(() => {
                     let message = this.options.motor.imagery[id];
@@ -206,6 +208,7 @@ class Training {
                     } else {
                         this.message.innerHTML = message;
                     }
+                    await sleep(this.options.motor.duration.pause_after);
                     this.io.event('trial_begins', { id: id, message: message });
                 });
                 await sleep(this.options.motor.duration.on);
