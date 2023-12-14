@@ -48,8 +48,8 @@ class Training {
                 duration: {
                     prep: 5000,
                     rest: 10000,
-                    on: 3000,
-                    off: 2000,
+                    display_on: 3000,
+                    display_off: 2000,
                     pause_before: 0,
                     pause_after: 0
                 },
@@ -199,7 +199,7 @@ class Training {
                     media.classList.toggle('hidden');
                     await sleep(this.options.motor.duration.pause_before);
                 }
-                await this.scheduler.asap(() => {
+                await this.scheduler.asap(async () => {
                     let message = this.options.motor.imagery[id];
                     if (this.options.motor.media) {
                         if (this.options.motor.media[id].type == 'video') {
@@ -211,7 +211,7 @@ class Training {
                     await sleep(this.options.motor.duration.pause_after);
                     this.io.event('trial_begins', { id: id, message: message });
                 });
-                await sleep(this.options.motor.duration.on);
+                await sleep(this.options.motor.duration.display_on);
                 await this.scheduler.asap(() => {
                     if (this.options.motor.media) {
                         let media = document.getElementById(`media-${id}`);
@@ -221,7 +221,7 @@ class Training {
                     }
                     this.io.event('trial_ends');
                 });
-                await sleep(this.options.motor.duration.off);
+                await sleep(this.options.motor.duration.display_off);
             }
             this.io.event('block_ends');
             //if (this.options.motor.duration.rest > 0) {
