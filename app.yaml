@@ -42,8 +42,8 @@ graphs:
                   rest: 8000
                   display_on: 6000
                   display_off: 2000
-                  pause_before: 3000
-                  pause_after: 6000
+                  pause_before: 0
+                  pause_after: 400
                 imagery:
                   - LEFT
                   - RIGHT
