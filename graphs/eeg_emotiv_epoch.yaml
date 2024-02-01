@@ -1,0 +1,46 @@
+graphs:
+  - id: emotiv
+    nodes:
+    - id: raw
+      module: timeflux.nodes.lsl
+      class: Receive
+      params:
+        prop: name
+        value: EmotivDataStream-EEG
+    - id: publish_raw
+      module: timeflux.nodes.zmq
+      class: Pub
+      params:
+        topic: raw
+    - id: publish_filtered
+      module: timeflux.nodes.zmq
+      class: Pub
+      params:
+        topic: filtered
+    - id: select
+      module: timeflux.nodes.query
+      class: LocQuery
+      params:
+        key: [AF3, AF4, F7, F3, FC5, T7, P7, O1, O2, P8, T8, FC6, F4, F8]
+    - id: dejitter
+      module: timeflux.nodes.dejitter
+      class: Reindex
+    - id: bandpass
+      module: timeflux_dsp.nodes.filters
+      class: IIRFilter
+      params:
+        filter_type: bandpass
+        frequencies: [0.1, 40]
+        order: 2
+    edges:
+      - source: raw
+        target: select
+      - source: select
+        target: dejitter
+      - source: dejitter
+        target: bandpass
+      - source: bandpass
+        target: publish_filtered
+      - source: raw
+        target: publish_raw
+    rate: 10
