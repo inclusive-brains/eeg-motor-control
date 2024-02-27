@@ -56,7 +56,7 @@ The application is fully configurable in the `app.yaml` file and other sub-graph
 
 | Setting | Description | Default |
 | --- | --- | --- |
-| DEVICE | EEG headset: dummy (random data), consciouslabs, emotiv, openbci | dummy |
+| DEVICE | EEG headset: dummy (random data), consciouslabs, openbci, emotiv_insight, emotive_epoch | dummy |
 | BITALINO | address of a BITalino device | off |
 | BASELINE_ENABLE | enable or disable baseline | true |
 | BASELINE_DURATION | duration of baseline, in milliseconds | 45000 |

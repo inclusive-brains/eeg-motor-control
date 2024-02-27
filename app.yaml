@@ -37,6 +37,13 @@ graphs:
                 enable: {{ MOTOR_ENABLE }}
                 blocks: {{ MOTOR_BLOCKS }}
                 trials: {{ MOTOR_TRIALS }}
+                duration:
+                  prep: 5000
+                  rest: 8000
+                  display_on: 6000
+                  display_off: 2000
+                  pause_before: 0
+                  pause_after: 400
                 imagery:
                   - LEFT
                   - RIGHT
@@ -101,5 +108,3 @@ graphs:
       - source: app:events
         target: pub
     rate: 10
-
-
