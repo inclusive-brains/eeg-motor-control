@@ -80,7 +80,10 @@ def bandpower(data, rate, bands, normalize=False):
     for i, band in enumerate(bands.values()):
         fmin, fmax = band
         mask = np.logical_and(freqs >= fmin, freqs <= fmax)
-        bandpower[:, i] = simps(psd[:, mask], dx=resolution)
+        if np.sum(mask) == 1:
+            bandpower[:, i] = psd[:, mask].flatten()
+        else:
+            bandpower[:, i] = simps(psd[:, mask], dx=resolution)
 
     if normalize:
         total_power = simps(psd, dx=resolution)
