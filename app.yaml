@@ -26,9 +26,10 @@ graphs:
       class: UI
       params:
         routes:
-          app: gui
+          dashboard: gui/dashboard/
+          mind_control: gui/mind_control/
         settings:
-          app:
+          mind_control:
             training:
               baseline:
                 enable: {{ BASELINE_ENABLE }}
