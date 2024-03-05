@@ -49,6 +49,7 @@ $ timeflux -d app.yaml
 
 You can use the classical timeflux [monitoring](http://localhost:8000/monitor/) interface or the [Inclusive Brains UI](http://localhost:8000/dashboard/) to check the signal or start a new [BCI session](http://localhost:8000/mind_control/).
 
+<img width="1440" alt="Dashboard_screenshot" src="https://github.com/inclusive-brains/control/assets/42540782/9f1b0cd6-b7b3-4e53-8e91-48e04ae09410">
 
 ## Configuration
 
