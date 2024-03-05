@@ -9,31 +9,37 @@ io.on('connect', function () {
 io.subscribe('eeg');
 
 document.addEventListener('DOMContentLoaded', function () {
-    var electrodes = ["AF3", "AF4", "T7", "T8", "Pz"];
     var charts = {};
     var timeSeries = {};
 
-    // Créer les graphiques et les séries temporelles pour l'EEG
-    electrodes.forEach(function (electrode) {
-        charts[electrode] = new SmoothieChart({
-            millisPerPixel: 10,
-            responsive: true,
-            grid: { fillStyle: '#ffffff', strokeStyle: 'rgba(201,201,201,0.38)', millisPerLine: 7000 },
-            labels: { fillStyle: 'rgba(0,0,0,0.68)' },
-            tooltipLine: { strokeStyle: '#000000' },
-            title: { fillStyle: '#012030', text: electrode, fontSize: 21, verticalAlign: 'top' }
-            //timestampFormatter: SmoothieChart.timeFormatter,
-        });
-        timeSeries[electrode] = new TimeSeries();
-        charts[electrode].streamTo(document.getElementById("eegChart" + electrode), 1000);
-        charts[electrode].addTimeSeries(timeSeries[electrode], { lineWidth: 1, strokeStyle: '#012030', interpolation: 'bezier' });
-    });
-
-    // Traiter les données EEG brutes
     io.on('eeg', (message) => {
         var data = message;
         for (var timestamp in data) {
             for (var sensor in data[timestamp]) {
+                // Vérifier si le graphique pour l'électrode existe déjà, sinon le créer.
+                if (!charts[sensor]) {
+                    // Créer un nouvel élément canvas pour l'électrode
+                    var canvas = document.createElement('canvas');
+                    canvas.id = 'eegChart' + sensor;
+                    canvas.style.width = '100%';
+                    canvas.style.height = '100px';
+                    document.getElementById('eegChartsContainer').appendChild(canvas);
+
+                    // Initialiser le graphique Smoothie pour l'électrode
+                    charts[sensor] = new SmoothieChart({
+                        millisPerPixel: 10,
+                        responsive: true,
+                        grid: { fillStyle: '#ffffff', strokeStyle: 'rgba(201,201,201,0.38)', millisPerLine: 7000 },
+                        labels: { fillStyle: 'rgba(0,0,0,0.68)' },
+                        tooltipLine: { strokeStyle: '#000000' },
+                        title: { fillStyle: '#012030', text: sensor, fontSize: 21, verticalAlign: 'top' }
+                    });
+                    timeSeries[sensor] = new TimeSeries();
+                    charts[sensor].streamTo(document.getElementById('eegChart' + sensor), 1000);
+                    charts[sensor].addTimeSeries(timeSeries[sensor], { lineWidth: 1, strokeStyle: '#012030', interpolation: 'bezier' });
+                }
+
+                // Ajouter les données à la série temporelle de l'électrode
                 if (timeSeries[sensor]) {
                     timeSeries[sensor].append(parseInt(timestamp), data[timestamp][sensor]);
                 }
@@ -42,7 +48,6 @@ document.addEventListener('DOMContentLoaded', function () {
     });
 });
 
-
 // Add event listeners to buttons
 document.addEventListener('DOMContentLoaded', function () {
     const startButton = document.getElementById('startButton');
@@ -77,221 +82,3 @@ function sendMarkerEvent() {
     // Logic to send a start event
     io.event('marker');
 }
-
-
-/*'use strict';
-
-// Assurez-vous que ce script est exécuté après que le DOM soit complètement chargé
-document.addEventListener('DOMContentLoaded', function () {
-    var smoothie = new SmoothieChart({
-        millisPerPixel: 50,
-        responsive: true,
-        grid: { fillStyle: '#ffffff', strokeStyle: 'rgba(201,201,201,0.38)', millisPerLine: 7000 },
-        labels: { fillStyle: 'rgba(0,0,0,0.68)' },
-        tooltipLine: { strokeStyle: '#000000' }
-    });
-    smoothie.streamTo(document.getElementById("eegCharts"), 1000);
-
-    // Créez une TimeSeries pour chaque électrode
-    var electrodes = ["Fp1"];
-    var timeSeries = {};
-    electrodes.forEach(function (electrode) {
-        timeSeries[electrode] = new TimeSeries();
-        // Ajoutez chaque série temporelle au graphique avec une couleur et un style de ligne uniques
-        smoothie.addTimeSeries(timeSeries[electrode], { lineWidth: 1, strokeStyle: '#242464', interpolation: 'bezier' });
-    });
-
-    let io = new IO();
-    io.on('connect', function () {
-        console.log('Connected');
-    });
-
-    io.subscribe('eeg_eeg');
-
-    io.on('eeg_eeg', (message) => {
-        var data = message; // Assurez-vous que cela correspond à la structure de vos données
-        console.log('Payload:', data); // Pour voir la structure exacte de payload
-        for (var timestamp in data) {
-            console.log('Timestamp:', timestamp); // Vérifiez que les timestamps sont lus correctement
-            for (var sensor in data[timestamp]) {
-                console.log(`Data for ${sensor}: ${data[timestamp][sensor]}`); // Vérifiez que les données du capteur sont correctes
-                if (timeSeries[sensor]) {
-                    timeSeries[sensor].append(parseInt(timestamp), data[timestamp][sensor]); // Ajoutez les données à la série temporelle correspondante
-                }
-            }
-        }
-    });
-});
-/*
-
-
-
-
-/*'use strict';
-
-document.addEventListener('DOMContentLoaded', function () {
-    let io = new IO();
-
-    // Create a Smoothie chart for every sensor
-    function createEEGCharts(electrodes) {
-        electrodes.forEach((electrode, index) => {
-            // Create a div container for each sensor
-            const chartContainer = document.createElement('div');
-            chartContainer.className = 'chart-container';
-            chartContainer.id = `chart-${electrode}`;
-            chartContainer.style.width = '100%';
-            chartContainer.style.height = '100px';
-            document.getElementById('eegCharts').appendChild(chartContainer);
-
-            // Create a canva element for the chart
-            const canvas = document.createElement('canvas');
-            canvas.id = `eegChart-${electrode}`;
-            chartContainer.appendChild(canvas);
-
-            // Initialize the Smoothie Chart
-            const smoothie = new SmoothieChart({
-                millisPerPixel: 50,
-                //responsive: true,
-                grid: { fillStyle: '#ffffff', strokeStyle: 'rgba(201,201,201,0.38)', millisPerLine: 7000 },
-                labels: { fillStyle: 'rgba(0,0,0,0.68)' },
-                tooltipLine: { strokeStyle: '#000000' }
-            });
-            smoothie.streamTo(document.getElementById(`eegChart-${electrode}`), 1000);
-
-            // Create a timeserie for each sensor
-            const timeSeries = new TimeSeries();
-            smoothie.addTimeSeries(timeSeries, { lineWidth: 1, strokeStyle: randomColor(), interpolation: 'bezier' });
-
-            // memorize time serie in an object to acess later
-            electrodeTimeSeries[electrode] = timeSeries;
-        });
-    }
-
-    // Detect sensors (to be modified later with autodetection)
-    let electrodes = ["Fp1", "Fp2", "Fp3"];
-    let electrodeTimeSeries = {};
-    createEEGCharts(electrodes);
-
-    io.on('connect', function () {
-        console.log('Connected');
-    });
-
-    io.subscribe('eeg_filtered');
-
-    io.on('eeg_filtered', (message) => {
-        var data = message;
-        for (var timestamp in data) {
-            for (var sensor in data[timestamp]) {
-                if (electrodeTimeSeries[sensor]) {
-                    electrodeTimeSeries[sensor].append(parseInt(timestamp), data[timestamp][sensor]);
-                }
-            }
-        }
-    });
-});
-
-// Create a random color
-function randomColor() {
-    var letters = '0123456789ABCDEF';
-    var color = '#';
-    for (var i = 0; i < 6; i++) {
-        color += letters[Math.floor(Math.random() * 16)];
-    }
-    return color;
-}
-
-*/
-
-/*'use strict';
-
-// Assurez-vous que ce script est exécuté après que le DOM soit complètement chargé
-document.addEventListener('DOMContentLoaded', function () {
-    var smoothie = new SmoothieChart({
-        millisPerPixel: 50,
-        responsive: true,
-        grid: { fillStyle: '#ffffff', strokeStyle: 'rgba(201,201,201,0.38)', millisPerLine: 7000 },
-        labels: { fillStyle: 'rgba(0,0,0,0.68)' },
-        tooltipLine: { strokeStyle: '#000000' }
-    });
-    smoothie.streamTo(document.getElementById("eegChart"), 1000);
-
-    // Créez une TimeSeries pour chaque électrode
-    var electrodes = ["Fp1", "Fp2"];
-    var timeSeries = {};
-    electrodes.forEach(function (electrode) {
-        timeSeries[electrode] = new TimeSeries();
-        // Ajoutez chaque série temporelle au graphique avec une couleur et un style de ligne uniques
-        smoothie.addTimeSeries(timeSeries[electrode], { lineWidth: 1, strokeStyle: randomColor(), interpolation: 'bezier' });
-    });
-
-    let io = new IO();
-    io.on('connect', function () {
-        console.log('Connected');
-    });
-
-    io.subscribe('eeg_filtered');
-
-    io.on('eeg_filtered', (message) => {
-        var data = message; // Assurez-vous que cela correspond à la structure de vos données
-        console.log('Payload:', data); // Pour voir la structure exacte de payload
-        for (var timestamp in data) {
-            console.log('Timestamp:', timestamp); // Vérifiez que les timestamps sont lus correctement
-            for (var sensor in data[timestamp]) {
-                console.log(`Data for ${sensor}: ${data[timestamp][sensor]}`); // Vérifiez que les données du capteur sont correctes
-                if (timeSeries[sensor]) {
-                    timeSeries[sensor].append(parseInt(timestamp), data[timestamp][sensor]); // Ajoutez les données à la série temporelle correspondante
-                }
-            }
-        }
-    });
-});
-
-// Fonction pour générer une couleur aléatoire
-function randomColor() {
-    var letters = '0123456789ABCDEF';
-    var color = '#';
-    for (var i = 0; i < 6; i++) {
-        color += letters[Math.floor(Math.random() * 16)];
-    }
-    return color;
-}
-
-/*
-
-/*
-Buttons ==> To be updated !!
-// Add event listeners to buttons
-document.addEventListener('DOMContentLoaded', function () {
-    const startButton = document.getElementById('startButton');
-    const stopButton = document.getElementById('stopButton');
-    const markButton = document.getElementById('markButton');
-
-    startButton.addEventListener('click', function () {
-        sendStartEvent();
-    });
-
-    stopButton.addEventListener('click', function () {
-        sendStopEvent();
-    });
-
-    markButton.addEventListener('click', function () {
-        sendMarkerEvent();
-    });
-});
-
-// Definition of sendStartEvent and sendStopEvent functions
-function sendStartEvent() {
-    // Logic to send a start event
-    io.event('start');
-}
-
-function sendStopEvent() {
-    // Logic to send a start event
-    io.event('stop');
-}
-
-function sendMarkerEvent() {
-    // Logic to send a start event
-    io.event('marker');
-}
-*/
