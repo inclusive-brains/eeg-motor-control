@@ -1,0 +1,40 @@
+graphs:
+
+- id: CognitiveLoad
+  nodes:
+  - id: sub
+    module: timeflux.nodes.zmq
+    class: Sub
+    params:
+      topics: [ filtered ]
+  - id: window
+    module: timeflux.nodes.window
+    class: Slide
+    params:
+      length: 1
+      step: 0.5
+  - id: cognitiveload
+    module: nodes.ratio
+    class: Ratio
+    params:
+      a: ["^O|P", [8, 12]]
+      b: ["^A*F", [4, 8]]
+      metric: cognitive_load
+  - id: pub
+    module: timeflux.nodes.zmq
+    class: Pub
+    params:
+      topic: metrics
+  # - id: display
+  #   module: timeflux.nodes.debug
+  #   class: Display
+  edges:
+    - source: sub:filtered
+      target: window
+    - source: window
+      target: cognitiveload
+    - source: cognitiveload
+      target: pub
+    # - source: cognitiveload
+    #   target: display
+  rate: 10
