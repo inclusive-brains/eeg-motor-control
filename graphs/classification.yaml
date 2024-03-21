@@ -6,7 +6,7 @@ graphs:
     module: timeflux.nodes.zmq
     class: Sub
     params:
-      topics: [ filtered, events ]
+      topics: [ eeg_filtered, events ]
   - id: epoch
     module: timeflux.nodes.epoch
     class: Samples
@@ -79,9 +79,9 @@ graphs:
   #   module: timeflux.nodes.debug
   #   class: Display
   edges:
-    - source: sub:filtered
+    - source: sub:eeg_filtered
       target: epoch
-    - source: sub:filtered
+    - source: sub:eeg_filtered
       target: window
     - source: sub:events
       target: epoch:events
@@ -107,7 +107,7 @@ graphs:
     module: timeflux.nodes.zmq
     class: Sub
     params:
-      topics: [ filtered, events ]
+      topics: [ eeg_filtered, events ]
   - id: extract
     module: timeflux.nodes.query
     class: Match
@@ -167,7 +167,7 @@ graphs:
   #   module: timeflux.nodes.debug
   #   class: Display
   edges:
-    - source: sub:filtered
+    - source: sub:eeg_filtered
       target: extract
     - source: extract
       target: epoch

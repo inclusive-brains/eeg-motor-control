@@ -1,0 +1,38 @@
+graphs:
+
+# Fake EEG Data + Metric calculation graph
+  - id: EEG
+    nodes:
+    - id: eeg
+      module: timeflux.nodes.random
+      class: Signal
+      params:
+        channels: 16
+        rate: 250
+        amplitude: 100
+        names: [ Fp1, Fp2, F3, Fz, F4, C1, Cz, C2, P3, Pz, P4, O1, Oz, O2 ]
+    - id: bandpass
+      module: timeflux_dsp.nodes.filters
+      class: IIRFilter
+      params:
+        filter_type: bandpass
+        frequencies: [0.1, 40]
+        order: 2
+    - id: publish_raw
+      module: timeflux.nodes.zmq
+      class: Pub
+      params:
+        topic: eeg_raw
+    - id: publish_filtered
+      module: timeflux.nodes.zmq
+      class: Pub
+      params:
+        topic: eeg_filtered
+    edges:
+      - source: eeg
+        target: bandpass
+      - source: bandpass
+        target: publish_filtered
+      - source: eeg
+        target: publish_raw
+    rate: 10

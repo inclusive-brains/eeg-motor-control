@@ -1,0 +1,41 @@
+graphs:
+  - id: replay
+    nodes:
+      - id: replay
+        module: timeflux.nodes.hdf5
+        class: Replay
+        params:
+          filename: data/insight_20240315-111151.hdf5
+          keys:
+            - /eeg/raw
+            - /eeg/filtered
+            - /motion
+          speed: 1
+      - id: publish_raw
+        module: timeflux.nodes.zmq
+        class: Pub
+        params:
+          topic: eeg_raw
+      - id: publish_filtered
+        module: timeflux.nodes.zmq
+        class: Pub
+        params:
+          topic: eeg_filtered
+      - id: publish_motion
+        module: timeflux.nodes.zmq
+        class: Pub
+        params:
+          topic: motion
+      - id: pub
+        module: timeflux.nodes.zmq
+        class: Pub
+        params:
+          topic: raw
+    edges:
+      - source: replay:eeg_raw
+        target: publish_raw
+      - source: replay:eeg_filtered
+        target: publish_filtered
+      - source: replay:motion
+        target: publish_motion
+    rate: 10

@@ -5,3 +5,5 @@ timeflux_openbci>=0.4.0
 timeflux_bitalino>=0.3.0
 git+https://github.com/inclusive-brains/timeflux_consciouslabs@master#timeflux_consciouslabs
 pyriemann>=0.3.0
+sounddevice>=0.4.6
+neurokit2>=0.2.7

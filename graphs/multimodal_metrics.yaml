@@ -1,0 +1,84 @@
+graphs:
+
+# Multimodal metric computation graph
+  - id: Multimodal
+    nodes:
+      - id: sub_ppg_metrics
+        module: timeflux.nodes.zmq
+        class: Sub
+        params:
+          topics: [ppg_stress_metric,ppg_attention_metric,ppg_cognitive_load_metric,ppg_arousal_metric]
+      - id: sub_eeg_metrics
+        module: timeflux.nodes.zmq
+        class: Sub
+        params:
+          topics: [eeg_stress_metric,eeg_attention_metric,eeg_cognitiveload_metric,eeg_arousal_metric]
+      - id: stress_metric_multimodal
+        module: nodes.Metric_Multimodal
+        class: MultimodalStressMetric
+        params:
+          metrics_weights: {'PPG_Stress_Metric': 0.7, 'eeg_stress': 0.3}
+          multimodal_metric: 'multimodal_stress'
+      - id: attention_metric_multimodal
+        module: nodes.Metric_Multimodal
+        class: MultimodalStressMetric
+        params:
+          metrics_weights: {'PPG_Attention_Metric': 0.3, 'eeg_attention': 0.7}
+          multimodal_metric: 'multimodal_attention'
+      - id: cognitive_load_metric_multimodal
+        module: nodes.Metric_Multimodal
+        class: MultimodalStressMetric
+        params:
+          metrics_weights: {'PPG_Cognitive_Load_Metric': 0.3, 'eeg_cognitive_load': 0.7}
+          multimodal_metric: 'multimodal_cognitive_load'
+      - id: arousal_metric_multimodal
+        module: nodes.Metric_Multimodal
+        class: MultimodalStressMetric
+        params:
+          metrics_weights: {'PPG_Arousal_Metric': 0.7, 'eeg_arousal': 0.3}
+          multimodal_metric: 'multimodal_arousal'
+      - id: pub_multimodal_stress
+        module: timeflux.nodes.zmq
+        class: Pub
+        params:
+          topic: multimodal_stress
+      - id: pub_multimodal_attention
+        module: timeflux.nodes.zmq
+        class: Pub
+        params:
+          topic: multimodal_attention
+      - id: pub_multimodal_cognitive_load
+        module: timeflux.nodes.zmq
+        class: Pub
+        params:
+          topic: multimodal_cognitive_load
+      - id: pub_multimodal_arousal
+        module: timeflux.nodes.zmq
+        class: Pub
+        params:
+          topic: multimodal_arousal
+    edges:
+      - source: sub_ppg_metrics:ppg_stress_metric
+        target: stress_metric_multimodal:i_ppg
+      - source: sub_eeg_metrics:eeg_stress_metric
+        target: stress_metric_multimodal:i_eeg
+      - source: stress_metric_multimodal
+        target: pub_multimodal_stress
+      - source: sub_ppg_metrics:ppg_attention_metric
+        target: attention_metric_multimodal:i_ppg
+      - source: sub_eeg_metrics:eeg_attention_metric
+        target: attention_metric_multimodal:i_eeg
+      - source: attention_metric_multimodal
+        target: pub_multimodal_attention
+      - source: sub_ppg_metrics:ppg_cognitive_load_metric
+        target: cognitive_load_metric_multimodal:i_ppg
+      - source: sub_eeg_metrics:eeg_cognitiveload_metric
+        target: cognitive_load_metric_multimodal:i_eeg
+      - source: cognitive_load_metric_multimodal
+        target: pub_multimodal_cognitive_load
+      - source: sub_ppg_metrics:ppg_arousal_metric
+        target: arousal_metric_multimodal:i_ppg
+      - source: sub_eeg_metrics:eeg_arousal_metric
+        target: arousal_metric_multimodal:i_eeg
+      - source: arousal_metric_multimodal
+        target: pub_multimodal_arousal
